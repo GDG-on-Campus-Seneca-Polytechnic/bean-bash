@@ -10,7 +10,7 @@ Players join at **<https://gdg.runs-on.dev>** (or the same workers.dev domain, `
 
 `gdg.runs-on.dev` is a friendly redirect (via Advance Labs' [runs-on.dev](https://runs-on.dev)) to the deployment above, but it **only redirects the bare root** — it can't reach `/arena.html` or `/screen.html`, and it drops query strings (so `?room=CODE` links don't survive it either). That's a deliberate limitation of runs-on.dev's registry, not a bug: a claimed name redirects exactly one URL, nothing path-aware. Always use the workers.dev URL directly for hosting or for a specific room link; use `gdg.runs-on.dev` only as the memorable "type this in your phone's browser" fallback for the plain join screen.
 
-Colors, typography, and the GDG attribution/disclaimer footer on every screen follow the [GDG on Campus brand kit](../../../../guides/gdg-brand-kit/).
+Colors, typography, and the GDG attribution/disclaimer footer on every screen follow the [GDG on Campus brand kit](https://github.com/GDG-on-Campus-Seneca-Polytechnic/gdgSen-info/tree/main/guides/gdg-brand-kit).
 
 ## Running the night of the event
 
