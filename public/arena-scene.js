@@ -339,21 +339,45 @@ function labelTexture(text) {
   canvas.width = 1024;
   canvas.height = 320;
   const ctx = canvas.getContext("2d");
-  ctx.font = "900 190px ui-rounded, 'SF Pro Rounded', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+  const fontFor = (px) => `900 ${px}px ui-rounded, 'SF Pro Rounded', 'Helvetica Neue', Helvetica, Arial, sans-serif`;
+  ctx.font = fontFor(190);
   ctx.fillStyle = "#fff";
   ctx.strokeStyle = "rgba(0,0,0,0.55)";
-  ctx.lineWidth = 24;
   ctx.lineJoin = "round";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const fit = Math.min(1, 940 / ctx.measureText(text).width);
-  ctx.setTransform(fit, 0, 0, 1, canvas.width / 2, canvas.height / 2);
-  ctx.strokeText(text, 0, 0);
-  ctx.fillText(text, 0, 0);
+  // Short answers fill one big line. Long ones (organizers type their own) wrap onto two
+  // smaller lines, and only squeeze sideways as a last resort, so they stay readable.
+  let lines = [text];
+  let size = 190;
+  if (ctx.measureText(text).width > 940 * 1.35) {
+    lines = splitInTwo(text);
+    size = lines.length > 1 ? 118 : 150;
+    ctx.font = fontFor(size);
+  }
+  ctx.lineWidth = Math.round(size / 8);
+  const lineHeight = size * 1.08;
+  lines.forEach((line, i) => {
+    const fit = Math.min(1, 960 / ctx.measureText(line).width);
+    const y = canvas.height / 2 + (i - (lines.length - 1) / 2) * lineHeight;
+    ctx.setTransform(fit, 0, 0, 1, canvas.width / 2, y);
+    ctx.strokeText(line, 0, 0);
+    ctx.fillText(line, 0, 0);
+  });
   texture = new THREE.CanvasTexture(canvas);
   texture.anisotropy = 4;
   labelCache.set(text, texture);
   return texture;
+}
+
+// Break at the space nearest the middle. No spaces at all: one line, squeezed to fit.
+function splitInTwo(text) {
+  const middle = text.length / 2;
+  let best = -1;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === " " && (best < 0 || Math.abs(i - middle) < Math.abs(best - middle))) best = i;
+  }
+  return best < 0 ? [text] : [text.slice(0, best), text.slice(best + 1)];
 }
 
 const labelGeometry = new THREE.PlaneGeometry(PLATFORM_WIDTH - 0.4, (PLATFORM_WIDTH - 0.4) * (320 / 1024));

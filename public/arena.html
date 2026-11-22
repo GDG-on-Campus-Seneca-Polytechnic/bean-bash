@@ -158,7 +158,17 @@
         line-height: 1.06;
         letter-spacing: -0.02em;
         text-wrap: balance;
+        overflow-wrap: anywhere;
         text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45), 0 14px 40px rgba(0, 0, 0, 0.6);
+      }
+
+      /* Organizers write their own questions; long ones step down a size so they stay above the stage. */
+      #question.long {
+        font-size: clamp(1.3rem, 3.2vw, 3.1rem);
+      }
+
+      #question.longer {
+        font-size: clamp(1.15rem, 2.6vw, 2.5rem);
       }
 
       .timerRow {
@@ -480,6 +490,273 @@
         color: #fff;
         text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
       }
+
+      /* Question editor: host only, lobby only. Big targets and high contrast, because it may be on the projector. */
+      body:not([data-phase="lobby"]) #questionsBtn {
+        display: none;
+      }
+
+      #editor {
+        width: min(1120px, 94vw);
+        max-height: 90dvh;
+        padding: 0;
+        border: 2px solid var(--line);
+        border-radius: 28px;
+        background: #0d1326;
+        color: #fff;
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7);
+        overflow: hidden;
+      }
+
+      #editor[open] {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #editor::backdrop {
+        background: rgba(3, 5, 14, 0.72);
+        backdrop-filter: blur(4px);
+      }
+
+      #editor::before {
+        content: "";
+        flex: none;
+        height: 8px;
+        background: linear-gradient(90deg, var(--blue) 0 25%, var(--red) 25% 50%, var(--yellow) 50% 75%, var(--green) 75%);
+      }
+
+      #editor button {
+        font-size: 0.95rem;
+        padding: 0.5em 1.1em;
+        border: 2px solid var(--line);
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        box-shadow: none;
+      }
+
+      #editor button:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      #editor button:active {
+        transform: translateY(1px);
+      }
+
+      #editor button.primary {
+        background: var(--blue);
+        border-color: var(--blue);
+      }
+
+      #editor button.danger:hover {
+        background: var(--red);
+        border-color: var(--red);
+      }
+
+      #editor button.icon {
+        width: 2.4em;
+        padding: 0.4em 0;
+      }
+
+      #editor button:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+
+      .edHead,
+      .edTools,
+      .edFoot {
+        flex: none;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px 24px;
+      }
+
+      .edHead h2 {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+
+      #edSource {
+        font-weight: 800;
+        font-size: 0.9rem;
+        padding: 0.25em 0.8em;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .edNote {
+        flex-basis: 100%;
+        margin: 0;
+        font-size: 0.9rem;
+        opacity: 0.7;
+      }
+
+      .edTools {
+        padding-top: 0;
+        border-bottom: 2px solid var(--line);
+      }
+
+      #edList {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        margin: 0;
+        padding: 16px 24px;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .edItem {
+        display: grid;
+        grid-template-columns: 2.4em 1fr auto;
+        gap: 10px 14px;
+        padding: 14px 16px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid var(--line);
+      }
+
+      .edItem.bad {
+        border-color: var(--red);
+      }
+
+      .edNum {
+        font-size: 1.3rem;
+        font-weight: 900;
+        opacity: 0.6;
+        font-variant-numeric: tabular-nums;
+        padding-top: 0.35em;
+      }
+
+      .edBody {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .edMoves {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .edField {
+        position: relative;
+        display: flex;
+        align-items: center;
+        min-width: 0;
+      }
+
+      #editor input[type="text"],
+      #editor textarea {
+        width: 100%;
+        font: inherit;
+        font-weight: 700;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.35);
+        border: 2px solid var(--line);
+        border-radius: 12px;
+        padding: 0.5em 3.6em 0.5em 0.7em;
+      }
+
+      #editor textarea {
+        font-size: 1.1rem;
+        resize: none;
+        min-height: 2.6em;
+      }
+
+      #editor input[type="text"]:focus,
+      #editor textarea:focus {
+        outline: none;
+        border-color: var(--blue);
+      }
+
+      .edCount {
+        position: absolute;
+        right: 0.8em;
+        font-size: 0.75rem;
+        font-weight: 800;
+        opacity: 0.5;
+        font-variant-numeric: tabular-nums;
+        pointer-events: none;
+      }
+
+      .edCount.over {
+        color: var(--red);
+        opacity: 1;
+      }
+
+      .edAnswers {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
+      }
+
+      /* Each answer wears its platform colour; the radio picks the correct one. */
+      .edAnswer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 4px 4px 10px;
+        border-radius: 14px;
+        border-left: 8px solid var(--zone);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .edAnswer[data-zone="0"] { --zone: var(--blue); }
+      .edAnswer[data-zone="1"] { --zone: var(--red); }
+      .edAnswer[data-zone="2"] { --zone: var(--yellow); }
+      .edAnswer[data-zone="3"] { --zone: var(--green); }
+
+      .edAnswer.correct {
+        background: rgba(52, 168, 83, 0.22);
+        outline: 2px solid var(--green);
+      }
+
+      .edAnswer label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex: none;
+        font-size: 0.75rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        opacity: 0.75;
+      }
+
+      .edAnswer input[type="radio"] {
+        width: 1.3em;
+        height: 1.3em;
+        accent-color: var(--green);
+        cursor: pointer;
+      }
+
+      .edFoot {
+        border-top: 2px solid var(--line);
+      }
+
+      #edStatus {
+        flex: 1;
+        min-width: 12em;
+        font-weight: 800;
+      }
+
+      #edStatus.error {
+        color: #ff8a80;
+      }
+
+      #edStatus.ok {
+        color: #81e6a0;
+      }
     </style>
   </head>
   <body data-phase="lobby">
@@ -525,12 +802,38 @@
         <button data-cmd="revive">Revive all (R)</button>
         <button data-cmd="reset">New game (Esc)</button>
         <button id="muteBtn">Sound on (M)</button>
+        <button id="questionsBtn" type="button">Questions</button>
         <div class="spacer"></div>
         <div class="pill" id="alive"></div>
       </footer>
 
       <div class="disclaimer">GDG on Campus · Seneca Polytechnic is not affiliated with or endorsed by Google LLC.</div>
     </div>
+
+    <dialog id="editor" aria-labelledby="edTitle">
+      <div class="edHead">
+        <h2 id="edTitle">Questions</h2>
+        <span id="edSource"></span>
+        <div class="spacer"></div>
+        <button type="button" class="icon" id="edClose" title="Close without saving" aria-label="Close without saving">✕</button>
+        <p class="edNote">This list shows the correct answers. Edit it before the audience can see the screen. Every game shuffles the questions.</p>
+      </div>
+      <div class="edTools">
+        <button type="button" id="edAdd">+ Add question</button>
+        <button type="button" id="edShuffle">Shuffle</button>
+        <div class="spacer"></div>
+        <button type="button" id="edImport">Import…</button>
+        <button type="button" id="edExport">Export</button>
+        <button type="button" class="danger" id="edReset">Reset to the built-in questions</button>
+        <input type="file" id="edFile" accept=".json,application/json" hidden />
+      </div>
+      <ol id="edList"></ol>
+      <div class="edFoot">
+        <div id="edStatus" role="status"></div>
+        <button type="button" id="edCancel">Cancel</button>
+        <button type="button" class="primary" id="edSave">Save</button>
+      </div>
+    </dialog>
 
     <script src="vendor/qrcode.js"></script>
     <script type="importmap">

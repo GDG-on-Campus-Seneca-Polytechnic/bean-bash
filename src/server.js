@@ -1,5 +1,6 @@
 // Bean Bash room server: one Durable Object per room, WebSockets for screen and phones.
 import QUESTIONS from "./questions.json";
+import { checkQuestions } from "../public/question-rules.js";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I, O, 0, 1
 const QUESTION_SECONDS = 20;
@@ -56,6 +57,12 @@ export class Room {
     this.deadline = 0;
     this.timer = null;
     this.questions = [];
+    // A question set the host saved from the arena's editor. null means the built-in set.
+    this.customQuestions = null;
+  }
+
+  questionSet() {
+    return this.customQuestions || QUESTIONS;
   }
 
   fetch(request) {
@@ -112,6 +119,35 @@ export class Room {
     if (msg.type === "next") return this.nextQuestion();
     if (msg.type === "revive") return this.revive();
     if (msg.type === "reset") return this.reset();
+    if (msg.type === "getQuestions") return this.sendQuestions(conn);
+    if (msg.type === "questions") return this.setQuestions(conn, msg);
+  }
+
+  // The editor's view of the set. Only ever sent to the host socket that asked, never
+  // broadcast, because it carries the correct answers.
+  sendQuestions(conn, extra = {}) {
+    this.send(conn, {
+      type: "questionList",
+      list: this.questionSet(),
+      builtIn: QUESTIONS,
+      custom: this.customQuestions !== null,
+      ...extra,
+    });
+  }
+
+  setQuestions(conn, msg) {
+    if (this.phase !== "lobby") {
+      return this.send(conn, { type: "questionsError", error: "Questions can only be changed in the lobby, between games." });
+    }
+    if (msg.list === null) {
+      this.customQuestions = null;
+    } else {
+      const result = checkQuestions(msg.list);
+      if (!result.ok) return this.send(conn, { type: "questionsError", error: result.error });
+      this.customQuestions = result.list;
+    }
+    this.questions = []; // so the next game deals from the new set
+    this.sendQuestions(conn, { saved: true });
   }
 
   join(conn, msg) {
@@ -232,7 +268,7 @@ export class Room {
   }
 
   startGame() {
-    this.questions = shuffle([...QUESTIONS]);
+    this.questions = shuffle([...this.questionSet()]);
     this.qIndex = -1;
     for (const p of this.players.values()) {
       p.status = "alive";
@@ -250,7 +286,7 @@ export class Room {
     if (this.qIndex >= 0 && (alive.length <= 1 || this.qIndex >= this.questions.length - 1)) {
       return this.finish();
     }
-    if (!this.questions.length) this.questions = shuffle([...QUESTIONS]);
+    if (!this.questions.length) this.questions = shuffle([...this.questionSet()]);
 
     this.qIndex += 1;
     this.phase = "question";

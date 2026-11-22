@@ -1,5 +1,9 @@
 # Bean Bash
 
+![A live round: beans pick a platform, then the reveal with confetti and the leaderboard](docs/demo.gif)
+
+Full recording: [docs/demo.mp4](docs/demo.mp4).
+
 A Fall Guys–style trivia game for our events. The projector shows a 3D arena; the audience joins on their phones by scanning a QR code. Each question, you drag your bean onto one of four answer platforms before the timer ends. The wrong platforms drop away and those beans fall. Last bean standing wins.
 
 One round type, on purpose. Nobody needs instructions, and a new group can be playing within a minute.
@@ -45,7 +49,19 @@ The same buttons are along the bottom of the screen if you'd rather click.
 
 ## Editing the questions
 
-Questions live in [`src/questions.json`](src/questions.json). Each one has the question text, four answers, and `correct` as the index of the right answer (0 is the first answer, 3 is the last).
+Change the questions on the arena page itself. No file edits, no redeploy.
+
+1. In the lobby, click **Questions** in the bottom bar. The editor lists the room's current set, with the correct answers marked.
+2. Edit a question's text or its four answers, and pick the correct one with the **Correct** radio. Add, delete, move up or down, or shuffle. Every game shuffles the questions anyway.
+3. Click **Save**. The room uses the new set from the next game.
+
+The editor shows the correct answers, so edit before the audience can see the projector. It only opens in the lobby, and the room refuses changes mid-game.
+
+Limits: 1 to 50 questions, question text up to 140 characters, exactly four answers of up to 40 characters each. The editor and the room both check this and say what's wrong.
+
+The saved set is also kept in that laptop's browser, so the next room you open on it starts with the same questions. To move a set to another laptop, use **Export** (downloads `bean-bash-questions.json`) and **Import** on the other one, then Save. **Reset to the built-in questions** and Save goes back to the default set and forgets the saved copy.
+
+The built-in set in [`src/questions.json`](src/questions.json) is only the default. Change it there if you want a different default for every laptop, then redeploy. Each question has the text, four answers, and `correct` as the index of the right answer (0 is the first answer, 3 is the last). Export and Import use the same format.
 
 ```json
 {
@@ -55,7 +71,7 @@ Questions live in [`src/questions.json`](src/questions.json). Each one has the q
 }
 ```
 
-Keep answers short: they are printed on the platforms. Mix easy and silly ones so students who don't code still have fun. Questions are shuffled every game.
+Keep answers short: they are printed on the platforms, and long ones wrap onto two smaller lines. Mix easy and silly ones so students who don't code still have fun.
 
 ## Running it on your own machine
 
@@ -90,9 +106,10 @@ Wrangler prints the URL — it's tied to whichever Cloudflare account is logged 
 | `public/index.html`, `public/phone.js` | The phone. Join, pick a colour, drag your bean. |
 | `public/audio.js` | The sound effects and the background music, synthesised in the browser. No audio files, nothing to download. |
 | `public/screen.html`, `public/screen.js` | A flat 2D version of the screen. Backup if 3D misbehaves on the venue laptop. |
-| `src/questions.json` | The questions. |
+| `src/questions.json` | The built-in questions, used until the host saves a set in the editor. |
+| `public/question-editor.js`, `public/question-rules.js` | The arena's question editor, and the rules a question set must follow (shared by the editor and the room). |
 
-Phones send where their bean is standing, ten times a second. The server works out which platform that is, and the correct answer never leaves the server until the reveal, so nobody can peek by opening the developer console.
+Phones send where their bean is standing, ten times a second. The server works out which platform that is, and the correct answer never reaches the phones until the reveal, so nobody can peek by opening the developer console. Only the host's arena page, which holds the room's host key, can read or change the question set.
 
 ## If something goes wrong
 

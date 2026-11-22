@@ -6,6 +6,7 @@ import {
   addLights, makeBackdrop, makePlatform, makeDock, makeAnswerLabel, setAnswerLabel,
   makeBean, setBeanLook, setBenched, animateRig, makePuffs, makeConfetti,
 } from "./arena-scene.js";
+import { createEditor } from "./question-editor.js";
 
 const el = (id) => document.getElementById(id);
 const now = () => performance.now() / 1000;
@@ -183,6 +184,11 @@ let socket = null;
 let state = null;
 let clockOffset = 0;
 
+const editor = createEditor({
+  send: (message) => socket?.readyState === WebSocket.OPEN && socket.send(JSON.stringify(message)),
+  isConnected: () => socket?.readyState === WebSocket.OPEN,
+});
+
 start();
 
 async function start() {
@@ -211,6 +217,7 @@ function connect() {
   socket = new WebSocket(`${scheme}://${location.host}/api/ws?role=screen&code=${room}&hostKey=${hostKey}`);
   socket.addEventListener("message", (event) => {
     const message = JSON.parse(event.data);
+    if (editor.onMessage(message)) return;
     if (message.type === "positions") {
       let onPlatform = 0;
       for (const item of message.list) {
@@ -228,8 +235,10 @@ function connect() {
     state = message;
     clockOffset = state.serverNow - Date.now();
     render(previousPhase);
+    editor.onState(state);
   });
   socket.addEventListener("open", () => {
+    editor.onSocketOpen();
     everConnected = true;
     failedTries = 0;
   });
@@ -263,6 +272,7 @@ window.BB = {
   sfx,
   get state() { return state; },
   beans,
+  editor,
   shots: SHOTS,
   // Grabs the 3D frame (no overlay) as a JPEG data URL, for checking animation timing.
   snap() {
@@ -298,6 +308,8 @@ try {
 paintMute();
 
 document.addEventListener("keydown", (event) => {
+  // Typing in the question editor must never start a game or skip a question.
+  if (editor.isOpen()) return;
   if (event.key.toLowerCase() === "m") {
     event.preventDefault();
     muteButton.click();
@@ -320,7 +332,10 @@ function render(previousPhase) {
   knownPlayers = state.players.length;
   el("joinPanel").classList.toggle("hidden", playing || state.phase === "over");
   el("timer").classList.toggle("hidden", !playing);
-  el("question").textContent = playing ? state.question.text : "";
+  const questionText = playing ? state.question.text : "";
+  el("question").textContent = questionText;
+  el("question").classList.toggle("long", questionText.length > 70 && questionText.length <= 105);
+  el("question").classList.toggle("longer", questionText.length > 105);
   el("progress").textContent = playing ? `Question ${state.questionNumber}` : "";
   el("progress").classList.toggle("hidden", !playing);
   document.body.dataset.phase = state.phase;
