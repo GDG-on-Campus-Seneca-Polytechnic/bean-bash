@@ -2,11 +2,12 @@
   "name": "gdg-bean-bash",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "dev": "cf dev",
+    "deploy": "cf deploy"
   },
   "devDependencies": {
-    "wrangler": "^4.42.0"
+    "cf": "^1.0.0-rc.2",
+    "wrangler": "^4.166.0"
   },
   "allowScripts": {
     "esbuild@0.28.1": true,
